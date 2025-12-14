@@ -5,7 +5,7 @@ on:
   schedule:
     # Every 10 minutes, but not at minute 0 (helps avoid the "top of hour" load spike)
     # Schedules are in UTC.  [oai_citation:4‡GitHub Docs](https://docs.github.com/actions/learn-github-actions/events-that-trigger-workflows)
-    - cron: "3-59/10 * * * *"
+    - cron: "3,33 * * * *"
 
 permissions:
   contents: write

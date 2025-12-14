@@ -88,7 +88,7 @@ def main():
     last_text = last["text"] if last else ""
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         ctx = browser.new_context()
         page = ctx.new_page()
 

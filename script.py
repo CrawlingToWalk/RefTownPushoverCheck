@@ -118,10 +118,12 @@ def main():
         print("No previous snapshot found. Saving initial snapshot.")
         save_state({"hash": new_hash, "text": new_text, "timestamp": now})
         (SNAPSHOT_DIR / f"{now}.txt").write_text(new_text, encoding="utf-8")
+        send_pushover(f"CHANGE DETECTED: {new_text}")
         return
 
     if new_hash == last_hash:
         print("No change detected.")
+        send_pushover(f"CHANGE DETECTED: {new_text}")
         return
 
     print("CHANGE DETECTED ✅")

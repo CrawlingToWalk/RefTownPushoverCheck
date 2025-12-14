@@ -68,7 +68,6 @@ def write_diff(old_text: str, new_text: str) -> str:
 def main():
     now = datetime.now(ZoneInfo("America/Chicago")).time()
 
-Quiet hours: midnight -> 7:00am
     if time(0, 0) <= now < time(7, 0):
         print("Skipping due to quiet hours (12:00 AM–7:00 AM CT).")
         return

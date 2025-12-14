@@ -1,4 +1,4 @@
-name: Watch page
+name: Watch Page
 
 on:
   workflow_dispatch:

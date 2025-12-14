@@ -1,4 +1,4 @@
-name: Watch Page
+name: Reftown Watcher
 
 on:
   workflow_dispatch:

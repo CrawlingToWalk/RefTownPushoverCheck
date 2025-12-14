@@ -4,7 +4,8 @@ import re
 import requests
 import hashlib
 import difflib
-from datetime import datetime
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -65,6 +66,13 @@ def write_diff(old_text: str, new_text: str) -> str:
     return "\n".join(diff)
 
 def main():
+    now = datetime.now(ZoneInfo("America/Chicago")).time()
+
+# Quiet hours: midnight -> 7:00am
+    if time(0, 0) <= now < time(7, 0):
+        print("Skipping due to quiet hours (12:00 AM–7:00 AM CT).")
+        return
+    
     login_url = os.environ["LOGIN_URL"]
     target_url = os.environ["TARGET_URL"]
     username = os.environ["USERNAME"]

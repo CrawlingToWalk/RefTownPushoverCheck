@@ -40,8 +40,8 @@ def send_pushover(message: str, title: str = "Watcher"):
         raise RuntimeError("Missing PUSHOVER_USER_KEYS (comma-separated) or PUSHOVER_USER_KEY in environment.")
 
     # Keep the message from failing due to length
-    if len(message) > PUSHOVER_MAX_CHARS:
-        message = message[:PUSHOVER_MAX_CHARS - 3] + "..."
+    # if len(message) > PUSHOVER_MAX_CHARS:
+    #     message = message[:PUSHOVER_MAX_CHARS - 3] + "..."
 
     errors = []
     results = []

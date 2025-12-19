@@ -1,4 +1,4 @@
-name: Reftown Watchers
+name: Reftown Watcher
 
 on:
   workflow_dispatch:

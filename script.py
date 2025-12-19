@@ -21,7 +21,7 @@ SNAPSHOT_DIR.mkdir(exist_ok=True)
 
 def get_pushover_users() -> list[str]:
     # Preferred: PUSHOVER_USER_KEYS="key1,key2,key3"
-    raw = (os.getenv("PUSHOVER_USER_KEYS") or "").strip()
+    raw = (os.getenv("PUSHOVER_USER_KEY") or "").strip()
     if raw:
         return [u.strip() for u in raw.split(",") if u.strip()]
 

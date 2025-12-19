@@ -19,24 +19,54 @@ STATE_FILE = STATE_DIR / "last_snapshot.json"
 SNAPSHOT_DIR = STATE_DIR / "snapshots"
 SNAPSHOT_DIR.mkdir(exist_ok=True)
 
+def get_pushover_users() -> list[str]:
+    # Preferred: PUSHOVER_USER_KEYS="key1,key2,key3"
+    raw = (os.getenv("PUSHOVER_USER_KEYS") or "").strip()
+    if raw:
+        return [u.strip() for u in raw.split(",") if u.strip()]
+
+    # Backwards compatible: single key
+    single = (os.getenv("PUSHOVER_USER_KEY") or "").strip()
+    return [single] if single else []
+
+
 def send_pushover(message: str, title: str = "Watcher"):
     token = (os.getenv("PUSHOVER_APP_TOKEN") or "").strip()
-    user  = (os.getenv("PUSHOVER_USER_KEY") or "").strip()
+    users = get_pushover_users()
 
-    payload = {
-        "token": token,     # required :contentReference[oaicite:1]{index=1}
-        "user": user,       # required :contentReference[oaicite:2]{index=2}
-        "message": message, # required :contentReference[oaicite:3]{index=3}
-        "title": title,
-    }
+    if not token:
+        raise RuntimeError("Missing PUSHOVER_APP_TOKEN in environment.")
+    if not users:
+        raise RuntimeError("Missing PUSHOVER_USER_KEYS (comma-separated) or PUSHOVER_USER_KEY in environment.")
 
-    r = requests.post("https://api.pushover.net/1/messages.json", data=payload, timeout=15)
+    # Keep the message from failing due to length
+    if len(message) > PUSHOVER_MAX_CHARS:
+        message = message[:PUSHOVER_MAX_CHARS - 3] + "..."
 
-    # If it fails, print the exact Pushover error JSON (it includes `errors`)
-    if r.status_code != 200:
-        raise RuntimeError(f"Pushover {r.status_code}: {r.text}")  # :contentReference[oaicite:4]{index=4}
+    errors = []
+    results = []
 
-    return r.json()
+    for user in users:
+        payload = {
+            "token": token,
+            "user": user,
+            "message": message,
+            "title": title,
+        }
+        try:
+            r = requests.post("https://api.pushover.net/1/messages.json", data=payload, timeout=15)
+            if r.status_code != 200:
+                errors.append(f"user={user} status={r.status_code} body={r.text}")
+            else:
+                results.append(r.json())
+        except requests.RequestException as e:
+            errors.append(f"user={user} exception={e}")
+
+    if errors:
+        raise RuntimeError("Pushover failures:\n" + "\n".join(errors))
+
+    return results
+
 
 def normalize_text(s: str) -> str:
     # Remove excessive whitespace and common “noise” patterns if needed
@@ -114,7 +144,20 @@ def main():
             pass
 
         # Extract monitored content
-        content = page.locator(content_sel).inner_text()
+        # Option C: selector missing becomes a detectable "state"
+        try:
+            page.wait_for_selector(content_sel, timeout=20000)
+            content = page.locator(content_sel).inner_text()
+        except PWTimeoutError:
+            stamp = datetime.now(TZ).strftime("%Y-%m-%d_%H-%M-%S")
+        
+            # Debug artifacts (super helpful)
+            page.screenshot(path=str(SNAPSHOT_DIR / f"{stamp}.missing_selector.png"), full_page=True)
+            (SNAPSHOT_DIR / f"{stamp}.missing_selector.html").write_text(page.content(), encoding="utf-8")
+        
+            # This becomes the monitored text so it hashes consistently
+            content = f"__MISSING_SELECTOR__ {content_sel} URL={target_url}"
+
         browser.close()
 
     new_text = normalize_text(content)
@@ -129,6 +172,7 @@ def main():
 
     if new_hash == last_hash:
         print("No change detected.")
+        send_pushover(f"Rich, there aren't any games rn. Stop fucking checking")
         return
 
     print("CHANGE DETECTED ✅")

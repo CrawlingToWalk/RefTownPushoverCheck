@@ -156,7 +156,7 @@ def main():
             (SNAPSHOT_DIR / f"{stamp}.missing_selector.html").write_text(page.content(), encoding="utf-8")
         
             # This becomes the monitored text so it hashes consistently
-            content = f"__MISSING_SELECTOR__ {content_sel} URL={target_url}"
+            content = "Games No Longer Available"
 
         browser.close()
 
@@ -172,7 +172,6 @@ def main():
 
     if new_hash == last_hash:
         print("No change detected.")
-        send_pushover(f"Rich, there aren't any games rn. Stop fucking checking")
         return
 
     print("CHANGE DETECTED ✅")

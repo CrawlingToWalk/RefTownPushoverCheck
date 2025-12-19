@@ -149,7 +149,7 @@ def main():
             page.wait_for_selector(content_sel, timeout=20000)
             content = page.locator(content_sel).inner_text()
         except PWTimeoutError:
-            stamp = datetime.now(TZ).strftime("%Y-%m-%d_%H-%M-%S")
+            stamp = datetime.now(ZoneInfo("America/Chicago")).strftime("%Y-%m-%d_%H-%M-%S")
         
             # Debug artifacts (super helpful)
             page.screenshot(path=str(SNAPSHOT_DIR / f"{stamp}.missing_selector.png"), full_page=True)
